@@ -1,4 +1,6 @@
-# alis
+# alis (fork to cater for my default config)
+
+You're probably looking for [the upstream repo](https://github.com/picodotdev/alis). This is a fork for me to check in the defaults for my installation into the config file.
 
 Arch Linux Install Script (or alis) installs unattended, automated and customized Arch Linux system.
 
