@@ -135,6 +135,7 @@ function check_variables() {
     check_variables_list "KERNELS_COMPRESSION" "$KERNELS_COMPRESSION" "gzip bzip2 lzma xz lzop lz4" "false"
     check_variables_value "TIMEZONE" "$TIMEZONE"
     check_variables_boolean "REFLECTOR" "$REFLECTOR"
+    check_variables_boolean "MULTILIB" "$MULTILIB"
     check_variables_value "PACMAN_MIRROR" "$PACMAN_MIRROR"
     check_variables_value "LOCALES" "$LOCALES"
     check_variables_value "LOCALE_CONF" "$LOCALE_CONF"
@@ -549,6 +550,10 @@ function install() {
     sed -i 's/#TotalDownload/TotalDownload/' /etc/pacman.conf
 
     pacstrap /mnt base base-devel linux linux-firmware
+    if [ "$MULTILIB" == "true" ]; then
+        echo "[multilib]" >> /mnt/etc/pacman.conf
+        echo "Include = /etc/pacman.d/mirrorlist" >> /mnt/etc/pacman.conf
+    fi
 
     sed -i 's/#Color/Color/' /mnt/etc/pacman.conf
     sed -i 's/#TotalDownload/TotalDownload/' /mnt/etc/pacman.conf
@@ -1174,7 +1179,9 @@ function desktop_environment() {
     PACKAGES_DRIVER=""
     PACKAGES_DDX=""
     PACKAGES_VULKAN=""
+    PACKAGES_VULKAN_MULTILIB=""
     PACKAGES_HARDWARE_ACCELERATION=""
+    PACKAGES_HARDWARE_ACCELERATION_MULTILIB=""
     case "$DISPLAY_DRIVER" in
         "nvidia" )
             PACKAGES_DRIVER="nvidia"
@@ -1218,6 +1225,7 @@ function desktop_environment() {
                 ;;
             "amdgpu" )
                 PACKAGES_VULKAN="vulkan-icd-loader vulkan-radeon"
+                PACKAGES_VULKAN_MULTILIB="lib32-vulkan-icd-loader lib32-vulkan-radeon"
                 ;;
             "ati" )
                 PACKAGES_VULKAN=""
@@ -1237,6 +1245,7 @@ function desktop_environment() {
                 ;;
             "amdgpu" )
                 PACKAGES_HARDWARE_ACCELERATION="libva-mesa-driver"
+                PACKAGES_HARDWARE_ACCELERATION_MULTILIB="lib32-libva-mesa-driver"
                 ;;
             "ati" )
                 PACKAGES_HARDWARE_ACCELERATION="mesa-vdpau"
@@ -1247,6 +1256,9 @@ function desktop_environment() {
         esac
     fi
     pacman_install "mesa $PACKAGES_DRIVER $PACKAGES_DDX $PACKAGES_VULKAN $PACKAGES_HARDWARE_ACCELERATION"
+    if [ "$MULTILIB" == "true" ]; then
+        pacman_install "lib32-mesa $PACKAGES_VULKAN_MULTILIB $PACKAGES_HARDWARE_ACCELERATION_MULTILIB"
+    fi
 
     case "$DESKTOP_ENVIRONMENT" in
         "gnome" )
